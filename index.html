@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>友だち招待</title>
+
+<!-- ▼ OGP：URLは自分がホスティングする場所に書き換えてください（絶対URL必須） ▼ -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="佐伯 正雄さんから友だち招待が届いています">
+<meta property="og:description" content="タップして友だち追加してください">
+<meta property="og:url" content="https://example.com/index.html">
+<meta property="og:image" content="https://example.com/ogp.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="佐伯 正雄さんから友だち招待が届いています">
+<meta name="twitter:description" content="タップして友だち追加してください">
+<meta name="twitter:image" content="https://example.com/ogp.png">
+<!-- ▲ ここまで ▲ -->
+<!-- アイコン画像は index.html と同じ場所に icon.png として置く（正方形推奨） -->
+
+<style>
+:root{--g1:#2b8f6e;--g2:#2f7f7a;--ink:#222;--line:#e6e6e6}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;background:#7494c0;color:var(--ink);overflow:hidden}
+.screen{position:fixed;inset:0;display:none}
+.screen.on{display:flex}
+
+/* 1: 招待通知 */
+#invite{background:#7494c0;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;width:100%;max-width:340px;border-radius:14px;padding:28px 22px 20px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.ava{display:block;border-radius:50%;object-fit:cover;background:#e9e6df}
+.card .ava{width:72px;height:72px;margin:0 auto 14px}
+.card h1{font-size:17px;line-height:1.5;font-weight:700}
+.card p{font-size:13px;color:#777;margin:8px 0 22px;line-height:1.6}
+.btn{display:block;width:100%;border:0;border-radius:8px;padding:14px;font:700 15px inherit;font-family:inherit;cursor:pointer}
+.btn.main{background:#06c755;color:#fff}
+.btn.sub{background:none;color:#888;font-weight:400;font-size:13px;margin-top:6px}
+.btn:focus-visible,.act:focus-visible,.x:focus-visible{outline:3px solid #ffb400;outline-offset:2px}
+
+/* 2: プロフィール */
+#profile{flex-direction:column;background:linear-gradient(160deg,var(--g1) 0 55%,var(--g2) 55%);color:#fff}
+.x{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));left:16px;background:none;border:0;color:#fff;font-size:28px;line-height:1;cursor:pointer}
+.who{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 24px 40px;text-align:center}
+.who .ava{width:110px;height:110px;margin-bottom:14px}
+.who h2{font-size:22px;font-weight:700}
+.who .st{margin-top:10px;font-size:14px;line-height:1.7;opacity:.95;max-width:300px}
+.who .meta{margin-top:8px;font-size:12px;opacity:.75}
+.acts{display:flex;justify-content:center;gap:44px;padding:8px 0 18px}
+.act{background:none;border:0;color:#fff;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:8px 10px;border-radius:6px}
+.act svg{width:30px;height:30px}
+.act.add{outline:3px solid #e53935;outline-offset:0}
+.warn{margin:0 12px calc(14px + env(safe-area-inset-bottom,0px));background:#fff;color:#333;border-radius:10px;padding:14px;font-size:13px;display:flex;gap:10px;align-items:center}
+.warn b{color:#e53935}
+#toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- 1: 怪しい招待風 -->
+<section id="invite" class="screen on">
+  <div class="card">
+    <img class="ava" src="icon.png" alt="">
+    <h1>佐伯 正雄さんから<br>友だち招待が届いています</h1>
+    <p>このトークに参加すると、<br>佐伯 正雄さんと友だちになれます。</p>
+    <button class="btn main" id="open">招待を確認する</button>
+    <button class="btn sub" id="later">あとで</button>
+  </div>
+</section>
+
+<!-- 2: プロフィール風 -->
+<section id="profile" class="screen">
+  <button class="x" id="close" aria-label="閉じる">×</button>
+  <div class="who">
+    <img class="ava" src="icon.png" alt="">
+    <h2>佐伯 正雄</h2>
+    <p class="st">週末は釣りとゴルフ⛳🎣<br>最近LINEを覚えました😊<br>若い方とも仲良くなりたいです！<br>よろしくお願いします🙇</p>
+    <p class="meta">52歳 ／ 会社員</p>
+  </div>
+  <div class="acts">
+    <button class="act add" id="add">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="8" r="4"/><path d="M1 21c0-4 3.5-7 8-7s8 3 8 7z"/><path d="M19 6v6M16 9h6" stroke="currentColor" stroke-width="2" fill="none"/></svg>追加</button>
+    <button class="act" id="block">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>ブロック</button>
+    <button class="act" id="report">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 19v-6a6 6 0 0112 0v6zM4 21h16v-2H4z"/></svg>通報</button>
+  </div>
+  <div class="warn"><b>▲</b><span>友だち追加の前に、相手をよくご確認ください。</span></div>
+</section>
+
+<div id="toast" role="status"></div>
+
+<!-- 共通アバター（中年男性＋釣り帽子のイラスト） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="face" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="50" fill="#e9e6df"/>
+    <path d="M18 100c2-20 16-30 32-30s30 10 32 30z" fill="#4c6a8a"/>
+    <ellipse cx="50" cy="52" rx="19" ry="23" fill="#f0c9a4"/>
+    <path d="M28 40c0-16 10-22 22-22s22 6 22 22c-8-5-14-6-22-6s-14 1-22 6z" fill="#7b6a4d"/>
+    <rect x="24" y="38" width="52" height="5" rx="2.5" fill="#5f5139"/>
+    <circle cx="42" cy="52" r="2.2" fill="#333"/><circle cx="58" cy="52" r="2.2" fill="#333"/>
+    <path d="M42 64q8 6 16 0" stroke="#8a5a3c" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    <path d="M34 47h12M54 47h12" stroke="#6b5a45" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<script>
+(function(){
+  var RICK="https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+  var $=function(id){return document.getElementById(id)};
+  var toast=$("toast"),t;
+  function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(t);t=setTimeout(function(){toast.classList.remove("on")},1800)}
+  function show(id){document.querySelectorAll(".screen").forEach(function(s){s.classList.toggle("on",s.id===id)})}
+  document.querySelectorAll("img.ava").forEach(function(im){
+    im.addEventListener("error",function(){
+      var n=document.createElementNS("http://www.w3.org/2000/svg","svg");
+      n.setAttribute("class","ava");n.setAttribute("viewBox","0 0 100 100");
+      n.innerHTML='<use href="#face"/>';im.replaceWith(n);
+    },{once:true});
+  });
+  $("open").onclick=function(){show("profile")};
+  $("later").onclick=function(){show("profile")};
+  $("close").onclick=function(){show("invite")};
+  $("add").onclick=function(){location.href=RICK};
+  $("block").onclick=function(){say("ブロックしても無駄です😊")};
+  $("report").onclick=function(){say("通報ありがとうございます（嘘）")};
+})();
+</script>
+</body>
+</html>
